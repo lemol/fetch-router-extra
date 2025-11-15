@@ -33,7 +33,6 @@ export class RouteServiceProvider {
     let res: Record<string, any> = {}
 
     for (let [name] of this.#collection) {
-      console.log('resolving service', name)
       res[name] = this.resolve(name)
     }
 

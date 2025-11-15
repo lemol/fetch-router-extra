@@ -111,7 +111,6 @@ export class RouterBuilder {
             if (meta?.services) {
                 let serviceProvider = this.#serviceProviderRegistry?.get(route);
                 let services = serviceProvider?.resolveAll();
-                console.log('resolved services for route', route, services);
                 context.services = services;
             }
             if (isRequestHandlerWithMiddleware(handler)) {

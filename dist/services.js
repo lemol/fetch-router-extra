@@ -23,7 +23,6 @@ export class RouteServiceProvider {
     resolveAll() {
         let res = {};
         for (let [name] of this.#collection) {
-            console.log('resolving service', name);
             res[name] = this.resolve(name);
         }
         return res;

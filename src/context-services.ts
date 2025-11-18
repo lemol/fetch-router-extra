@@ -1,7 +1,7 @@
-import { createStorageKey } from "@remix-run/fetch-router"
+import { createStorageKey, type Middleware } from "@remix-run/fetch-router"
 import { getContext } from "@remix-run/fetch-router/async-context-middleware"
 
-export const CONTEXT_SERVICES_KEY: ReturnType<typeof createStorageKey<ContextServiceCollection<any>>> = createStorageKey<ContextServiceCollection<any>>()
+const CONTEXT_SERVICES_KEY: ReturnType<typeof createStorageKey<ContextServiceCollection<any>>> = createStorageKey<ContextServiceCollection<any>>()
 
 export function getContextServices() {
   return getContext().storage.get(CONTEXT_SERVICES_KEY)
@@ -22,5 +22,11 @@ export class ContextServiceCollection<pair extends ServiceNameTypePair<string, a
 
   get<N extends keyof pair, T extends pair[N]>(name: N): T | undefined {
     return this.#services.get(name as string) as T | undefined
+  }
+}
+
+export function loadContextServicesMiddleware<contextServices extends ContextServiceCollection<any>>(contextServices: contextServices): Middleware {
+  return async ({ storage }) => {
+    storage.set(CONTEXT_SERVICES_KEY, contextServices)
   }
 }

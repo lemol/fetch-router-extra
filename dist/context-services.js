@@ -1,6 +1,6 @@
 import { createStorageKey } from "@remix-run/fetch-router";
 import { getContext } from "@remix-run/fetch-router/async-context-middleware";
-export const CONTEXT_SERVICES_KEY = createStorageKey();
+const CONTEXT_SERVICES_KEY = createStorageKey();
 export function getContextServices() {
     return getContext().storage.get(CONTEXT_SERVICES_KEY);
 }
@@ -15,4 +15,9 @@ export class ContextServiceCollection {
     get(name) {
         return this.#services.get(name);
     }
+}
+export function loadContextServicesMiddleware(contextServices) {
+    return async ({ storage }) => {
+        storage.set(CONTEXT_SERVICES_KEY, contextServices);
+    };
 }

@@ -184,6 +184,21 @@ export class RouterBuilder<
     return this.route('OPTIONS', route, handler)
   }
 
+  ignore<
+    method extends RequestMethod | 'ANY',
+    pattern extends string,
+    Value extends Route<method, pattern>,
+  >(
+    route: RouteInRemaining<Remaining, Value>,
+  ): RouterBuilder<RootMap, MarkHandled<Remaining, Value>>
+  ignore<routeMap extends RouteMap>(
+    routes: RouteMapInRemaining<Remaining, routeMap>,
+  ): RouterBuilder<RootMap, MarkHandled<Remaining, routeMap>>
+  ignore(routeOrRoutes: Route<any, any> | RouteMap): any {
+    // Intentionally does nothing - just marks the route as handled for type safety
+    return this
+  }
+
   map<
     method extends RequestMethod | 'ANY',
     pattern extends string,

@@ -39,6 +39,10 @@ export class RouterBuilder {
     options(route, handler) {
         return this.route('OPTIONS', route, handler);
     }
+    ignore(routeOrRoutes) {
+        // Intentionally does nothing - just marks the route as handled for type safety
+        return this;
+    }
     map(routeOrRoutes, handlers) {
         if (routeOrRoutes instanceof Route) {
             let normalized = this.#wrapHandler(routeOrRoutes, handlers);

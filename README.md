@@ -109,6 +109,20 @@ const router = createRouterBuilder<typeof routes>()
   .build()
 ```
 
+### Ignoring Routes
+
+Sometimes you may want to skip implementing a route handler while maintaining type safety. This is useful when middleware already handles the route or when you intentionally want to skip certain routes. The `ignore()` method allows you to mark routes as handled without actually registering a handler:
+
+```ts
+const router = createRouterBuilder<typeof routes>()
+  .route(routes.home, homeHandlers)
+  .ignore(routes.admin) // Skip this route - middleware handles it
+  .route(cartEnhancedRoute, cartHandlers)
+  .build()
+```
+
+This satisfies TypeScript's type checking without registering any handler for the ignored route.
+
 ## Related Work
 
 - [@remix-run/fetch-router](https://github.com/remix-run/remix/tree/main/packages/fetch-router) - A minimal, composable router for the web Fetch API

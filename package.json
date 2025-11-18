@@ -35,16 +35,16 @@
     "@standard-schema/spec": "^1.0.0"
   },
   "devDependencies": {
-    "@types/node": "^24.6.0",
+    "@types/node": "^24.10.1",
     "eslint": "^9.39.1",
     "eslint-plugin-prefer-let": "^4.0.0",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.4"
+    "typescript-eslint": "^8.47.0"
   },
   "peerDependencies": {
-    "@remix-run/fetch-router": "^0.8.0",
-    "@remix-run/route-pattern": "^0.8.0"
+    "@remix-run/fetch-router": "^0.9.0",
+    "@remix-run/route-pattern": "^0.15.0"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

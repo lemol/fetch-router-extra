@@ -3,6 +3,7 @@ import type { Middleware, RequestHandler, RequestMethod, RouteHandler as BaseRou
 import { type Params, type RoutePattern } from '@remix-run/route-pattern';
 import { type EnhancedRouteHandler, type EnhancedRouteHandlers } from './enhance-route.ts';
 import { type RouteServiceProvider } from './services.ts';
+import { ContextServiceCollection } from './context-services.ts';
 type IsBroadRouteMap<T> = [RouteMap] extends [T] ? ([T] extends [RouteMap] ? true : false) : false;
 type RoutePatternOf<T> = T extends Route<any, infer Pattern extends string> ? Pattern : string;
 type RouteMethodOf<T> = T extends Route<infer Method extends RequestMethod | 'ANY', any> ? Method : RequestMethod | 'ANY';
@@ -37,7 +38,7 @@ export declare class RouterBuilder<RootMap extends RouteMap = RouteMap, Remainin
     ignore<routeMap extends RouteMap>(routes: RouteMapInRemaining<Remaining, routeMap>): RouterBuilder<RootMap, MarkHandled<Remaining, routeMap>>;
     map<method extends RequestMethod | 'ANY', pattern extends string, Value extends Route<method, pattern>>(route: RouteInRemaining<Remaining, Value>, handler: EnhancedRouteHandler<Route<method, pattern>> | BaseRouteHandler<method, pattern>): RouterBuilder<RootMap, MarkHandled<Remaining, Value>>;
     map<routeMap extends RouteMap>(routes: RouteMapInRemaining<Remaining, routeMap>, handlers: EnhancedRouteHandlers<routeMap> | BaseRouteHandlers<routeMap>): RouterBuilder<RootMap, MarkHandled<Remaining, routeMap>>;
-    build(this: HasUnmappedRoutes<Remaining> extends true ? never : RouterBuilder<RootMap, Remaining>, serviceProviderRegistry: WeakMap<Route<any, any>, RouteServiceProvider>): Router;
+    build<contextServices extends ContextServiceCollection<any>>(this: HasUnmappedRoutes<Remaining> extends true ? never : RouterBuilder<RootMap, Remaining>, serviceProviderRegistry: WeakMap<Route<any, any>, RouteServiceProvider>, contextServices: contextServices): Router;
 }
 export declare function createRouterBuilder<RootMap extends RouteMap = RouteMap>(options?: RouterOptions): RouterBuilder<RootMap, RouteSignatureUnion<RootMap>>;
 type RequestHandlerWithMiddleware<method extends RequestMethod | 'ANY', pattern extends string> = {

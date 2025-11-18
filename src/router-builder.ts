@@ -21,6 +21,7 @@ import {
   type EnhancedRequestHandler,
 } from './enhance-route.ts'
 import { type RouteServiceProvider } from './services.ts'
+import { CONTEXT_SERVICES_KEY, ContextServiceCollection } from './context-services.ts'
 
 type IsBroadRouteMap<T> = [RouteMap] extends [T]
   ? ([T] extends [RouteMap] ? true : false)
@@ -73,10 +74,12 @@ export class RouterBuilder<
 > {
   #router: Router
   #serviceProviderRegistry: WeakMap<Route<any, any>, RouteServiceProvider>
+  #contextServiceCollection: ContextServiceCollection<any>
 
   constructor(options?: RouterOptions) {
     this.#router = createRouter(options)
     this.#serviceProviderRegistry = new WeakMap()
+    this.#contextServiceCollection = new ContextServiceCollection<any>(new Map())
   }
 
   route<method extends RequestMethod | 'ANY', pattern extends string>(
@@ -222,8 +225,13 @@ export class RouterBuilder<
     return this
   }
 
-  build(this: HasUnmappedRoutes<Remaining> extends true ? never : RouterBuilder<RootMap, Remaining>, serviceProviderRegistry: WeakMap<Route<any, any>, RouteServiceProvider>): Router {
+  build<contextServices extends ContextServiceCollection<any>>(
+    this: HasUnmappedRoutes<Remaining> extends true ? never : RouterBuilder<RootMap, Remaining>,
+    serviceProviderRegistry: WeakMap<Route<any, any>, RouteServiceProvider>,
+    contextServices: contextServices
+  ): Router {
     this.#serviceProviderRegistry = serviceProviderRegistry
+    this.#contextServiceCollection = contextServices
     return this.#router
   }
 
@@ -299,6 +307,8 @@ export class RouterBuilder<
         let services = serviceProvider?.resolveAll()
         ;(context as any).services = services
       }
+
+      context.storage.set(CONTEXT_SERVICES_KEY, this.#contextServiceCollection)
 
       if (isRequestHandlerWithMiddleware(handler)) {
         return handler.handler(context)

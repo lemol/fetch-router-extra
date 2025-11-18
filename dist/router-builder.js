@@ -2,12 +2,15 @@ import { Route, createRouter } from '@remix-run/fetch-router';
 import {} from '@remix-run/route-pattern';
 import { routeMetadata, } from "./enhance-route.js";
 import {} from "./services.js";
+import { CONTEXT_SERVICES_KEY, ContextServiceCollection } from "./context-services.js";
 export class RouterBuilder {
     #router;
     #serviceProviderRegistry;
+    #contextServiceCollection;
     constructor(options) {
         this.#router = createRouter(options);
         this.#serviceProviderRegistry = new WeakMap();
+        this.#contextServiceCollection = new ContextServiceCollection(new Map());
     }
     route(method, pattern, handler) {
         if (pattern instanceof Route) {
@@ -52,8 +55,9 @@ export class RouterBuilder {
         this.#mapRouteMap(routeOrRoutes, handlers);
         return this;
     }
-    build(serviceProviderRegistry) {
+    build(serviceProviderRegistry, contextServices) {
         this.#serviceProviderRegistry = serviceProviderRegistry;
+        this.#contextServiceCollection = contextServices;
         return this.#router;
     }
     #mapRouteMap(routes, handlers) {
@@ -117,6 +121,7 @@ export class RouterBuilder {
                 let services = serviceProvider?.resolveAll();
                 context.services = services;
             }
+            context.storage.set(CONTEXT_SERVICES_KEY, this.#contextServiceCollection);
             if (isRequestHandlerWithMiddleware(handler)) {
                 return handler.handler(context);
             }

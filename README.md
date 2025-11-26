@@ -1,18 +1,11 @@
 # fetch-router-extra
 
-Enhanced type-safe routing, dependency injection, and extra utilities for building web applications with [fetch-router](https://github.com/remix-run/remix/tree/main/packages/fetch-router) package.
+Extra features for [fetch-router](https://github.com/remix-run/remix/tree/main/packages/fetch-router) package, with a focus on enhancing type safety.
 
 ## Features
 
-- **Built on fetch-router**: Extends the powerful and minimal `fetch-router` with extra features
-- **Dependency Injection**: Built-in support for dependency injection, making it easy to manage and test your route handlers
-- **Enhanced Type Safety**: Additional type-safe utilities, including form body parsing and validation
-
-## Goals
-
-- **Extend fetch-router**: Build on top of the solid foundation provided by `fetch-router` to add extra features without sacrificing performance or simplicity.
-- **Dependency Injection**: Provide a way to inject dependencies into route handlers, making them easier to test and manage.
-- **Enhanced Type Safety**: Leverage TypeScript for compile-time route validation, body parsing, and validation.
+- **Type-safe middleware data**: Automatically extract and type middleware data in route handlers
+- **Middleware composition**: Inherit middleware data from parent routes
 
 ## Installation
 
@@ -22,110 +15,125 @@ npm install fetch-router-extra
 
 ## Usage
 
-### enhanceRoute
+### defineRouter
 
-Given a route created with `fetch-router`'s `route()` function, `enhanceRoute()` adds extra capabilities like dependency injection and body parsing/validation.
+The `defineRouter` function enhances type safety of route handlers by automatically extracting middleware data types and making them available in the handler's `extra` parameter.
+
+#### Single Handler
 
 ```ts
-import { route } from '@remix-run/fetch-router'
-import { enhanceRoute } from 'fetch-router-extra'
-let routes = route({
-  home: '/home',
-  cart: route({
-    index: '/cart',
-    add: '/cart/add',
-  }),
-})
+import { defineRouter } from 'fetch-router-extra'
 
-let enhancedRoutes = enhanceRoute(routes.cart, {
-  index: {
-    services: {
-      cartService: serviceOf<CartService>(),
-    },
-  },
-  add: {
-    // Add a body schema to parse and validate the request body
-    body: z.object({
-      itemId: z.string().uuid(),
-      quantity: z.number().min(1).default(1),
-    }),
-    // Define services to inject into the route handler
-    services: {
-      cartService: serviceOf<CartService>(),
-    },
-  },
+let action = defineRouter({
+  middleware: [authMiddleware],
+  handler: ({ extra }) => {
+    // extra.user is fully typed from authMiddleware
+    console.log(extra.user.name)
+    return new Response('Success')
+  }
 })
 ```
 
-The `enhancedRoutes` object has the same structure as the original `routes` object, but each route now has additional type information for the body and services.
+#### Route Tree
+
+Apply middleware to an entire route tree:
 
 ```ts
-type EnhancedRoutes = typeof enhancedRoutes
-// {
-//   index: EnhancedRoute<'ANY', '/cart', undefined, { cartService: CartService }>
-//   add: EnhancedRoute<'ANY', '/cart/add', { itemId: string; quantity: number }, { cartService: CartService }>
-// }
-```
-
-The `EnhancedRoute` type extends the base `Route` type from `fetch-router` with additional type parameters for the body schema and services.
-
-### EnhancedRouteHandlers
-
-Similar to `fetch-router`'s `RouteHandlers`, `EnhancedRouteHandlers` allows you to register handlers for enhanced routes with type-safe access to the parsed body and injected services.
-
-
-```ts
-import { type EnhancedRouteHandlers } from 'fetch-router-extra'
-
-export const cartHandlers = {
-  middleware: [logger()],
+let postsRouter = defineRouter(routes.posts, {
+  middleware: [authMiddleware],
   handlers: {
-    index({ services }) {
-      let cart = services.cartService.getCart()
-      return new Response(JSON.stringify(cart), {
-        headers: { 'Content-Type': 'application/json' },
-      })
+    index({ extra }) {
+      // extra.user is available in all handlers
+      return new Response(`Posts for ${extra.user.name}`)
     },
-    add({ body, services }) {
-      services.cartService.addItem(body.itemId, body.quantity)
-      return new Response(null, { status: 204 })
-    },
-  },
-} satisfies EnhancedRouteHandlers<typeof enhancedRoutes>
+    action({ extra }) {
+      return new Response('Post created')
+    }
+  }
+})
 ```
 
-### createRouterBuilder
-
-`createRouterBuilder()` is a factory function that creates a router builder. A router builder is a utility for constructing the router in a type-safe manner. This is a replacement for `@remix-run/fetch-router`'s `createRouter()` function that adds support to exhaustively type the routes.
-
-The `build()` method finalizes the router construction and returns the fully typed router. It ensures that all routes are defined and correctly typed according to the provided route definitions.
+#### Single Route
 
 ```ts
-import { createRouterBuilder } from 'fetch-router-extra'
-
-const router = createRouterBuilder<typeof routes>()
-  .route(routes.home, homeHandlers)
-  .route(cartEnhancedRoute, cartHandlers)
-  .build()
+let action = defineRouter(routes.posts.action, {
+  middleware: [authMiddleware],
+  handler: ({ extra }) => {
+    return new Response('Post created')
+  }
+})
 ```
 
-### Ignoring Routes
+### Middleware Composition
 
-Sometimes you may want to skip implementing a route handler while maintaining type safety. This is useful when middleware already handles the route or when you intentionally want to skip certain routes. The `ignore()` method allows you to mark routes as handled without actually registering a handler:
+Use `use` and `withParent` to create middleware that inherits extra data from parent middleware:
 
 ```ts
-const router = createRouterBuilder<typeof routes>()
-  .route(routes.home, homeHandlers)
-  .ignore(routes.admin) // Skip this route - middleware handles it
-  .route(cartEnhancedRoute, cartHandlers)
-  .build()
+import { use, withParent } from '@remix-run/fetch-router-extra'
+
+// Parent middleware
+let postsMiddleware = [authMiddleware]
+
+// Child middleware inherits from parent
+let postsActionMiddleware = use(
+  withParent<typeof postsMiddleware>(),
+  [formDataParser(schema)]
+)
+
+// Handler has access to both auth and formData
+defineRouter({
+  middleware: postsActionMiddleware,
+  handler: ({ extra }) => {
+    console.log(extra.user.name)      // from authMiddleware
+    console.log(extra.formData.title) // from formDataParser
+    return new Response('Success')
+  }
+})
 ```
 
-This satisfies TypeScript's type checking without registering any handler for the ignored route.
+### Middleware Type
+
+A `Middleware` type that extends `@remix-run/fetch-router`'s `Middleware` with support for extra data:
+
+```ts
+import type { Middleware } from '@remix-run/fetch-router-extra'
+
+function createAuthMiddleware(): Middleware<{
+  user: { id: string; name: string }
+}> {
+  return (context) => {
+    (context as any).extra = {
+      user: { id: '1', name: 'John' }
+    }
+  }
+}
+```
+
+## API Reference
+
+### `defineRouter(options)`
+
+Define a route handler with type-safe middleware data.
+
+### `defineRouter(routes, options)`
+
+Define a route tree with type-safe middleware data.
+
+### `defineRouter(route, options)`
+
+Define a single route handler with type-safe middleware data.
+
+### `use(parent, middleware)`
+
+Create middleware that inherits extra data from parent middleware.
+
+### `withParent<T>()`
+
+Create a parent middleware reference for type inheritance.
 
 ## Related Work
 
-- [@remix-run/fetch-router](https://github.com/remix-run/remix/tree/main/packages/fetch-router) - A minimal, composable router for the web Fetch API
+- [@remix-run/fetch-router](https://github.com/remix-run/remix/tree/main/packages/fetch-router) - A library for working with HTTP headers
 
 ## License
 

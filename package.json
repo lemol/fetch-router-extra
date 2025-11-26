@@ -1,18 +1,18 @@
 {
   "name": "fetch-router-extra",
   "version": "0.1.0",
-  "description": "A set of utilities to extend @remix-run/fetch-router functionality.",
+  "description": "Extra features for @remix-run/fetch-router",
   "author": "Leza Lutonda <lemol.leza@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lemol/fetch-router-extra.git",
-    "directory": "packages/fetch-router"
+    "url": "git+https://github.com/lemol/fetch-router-extra.git"
   },
   "homepage": "https://github.com/lemol/fetch-router-extra#readme",
   "files": [
     "LICENSE",
     "README.md",
+    "SPEC.md",
     "dist",
     "src",
     "!src/**/*.test.ts"
@@ -31,26 +31,19 @@
       "./package.json": "./package.json"
     }
   },
-  "dependencies": {
-    "@standard-schema/spec": "^1.0.0"
-  },
   "devDependencies": {
-    "@types/node": "^24.10.1",
-    "eslint": "^9.39.1",
-    "eslint-plugin-prefer-let": "^4.0.0",
-    "prettier": "^3.6.2",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.47.0"
+    "@remix-run/route-pattern": "^0.15.3",
+    "@types/node": "^24.6.0",
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@remix-run/fetch-router": "^0.9.0",
-    "@remix-run/route-pattern": "^0.15.0"
+    "@remix-run/fetch-router": "^0.12.0"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "clean": "git clean -fdX",
     "prepublishOnly": "pnpm run build",
-    "test": "node --disable-warning=ExperimentalWarning --test './src/**/*.test.ts'",
+    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test './src/**/*.test.ts'",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
@@ -58,7 +51,9 @@
     "router",
     "routing",
     "middleware",
-    "remix",
+    "koa",
+    "url",
+    "pattern",
     "match"
   ]
 }

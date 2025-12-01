@@ -1,16 +1,16 @@
-# fetch-router-extra
+# @remix-run/fetch-router-extra
 
 Extra features for [fetch-router](https://github.com/remix-run/remix/tree/main/packages/fetch-router) package, with a focus on enhancing type safety.
 
 ## Features
 
 - **Type-safe middleware data**: Automatically extract and type middleware data in route handlers
-- **Middleware composition**: Inherit middleware data from parent routes
+- **Middleware composition**: Combine middleware with proper type inference using `use`
 
 ## Installation
 
 ```sh
-npm install fetch-router-extra
+npm install @remix-run/fetch-router-extra
 ```
 
 ## Usage
@@ -22,7 +22,7 @@ The `defineRouter` function enhances type safety of route handlers by automatica
 #### Single Handler
 
 ```ts
-import { defineRouter } from 'fetch-router-extra'
+import { defineRouter } from '@remix-run/fetch-router-extra'
 
 let action = defineRouter({
   middleware: [authMiddleware],
@@ -60,34 +60,53 @@ let action = defineRouter(routes.posts.action, {
   middleware: [authMiddleware],
   handler: ({ extra }) => {
     return new Response('Post created')
-  }
+  },
 })
 ```
 
-### Middleware Composition
+### use
 
-Use `use` and `withParent` to create middleware that inherits extra data from parent middleware:
+The `use` function combines multiple middleware into a single array with proper type inference for the `extra` data:
 
 ```ts
-import { use, withParent } from '@remix-run/fetch-router-extra'
+import { use } from '@remix-run/fetch-router-extra'
+
+defineRouter({
+  // Combine multiple middleware with type inference
+  middleware: use(
+    authMiddleware,
+    loggingMiddleware,
+    rateLimitMiddleware,
+  ),
+  handler: ({ extra }) => {
+    // extra contains combined types from all middleware
+    console.log(extra.user.name) // from authMiddleware
+    return new Response('Success')
+  },
+})
+```
+
+#### Inheriting Parent Middleware Types
+
+Use `includeParentExtra` to inherit extra data types from parent middleware:
+
+```ts
+import { use, includeParentExtra } from '@remix-run/fetch-router-extra'
 
 // Parent middleware
-let postsMiddleware = [authMiddleware]
+let postsMiddleware = use(authMiddleware)
 
-// Child middleware inherits from parent
-let postsActionMiddleware = use(
-  withParent<typeof postsMiddleware>(),
-  [formDataParser(schema)]
-)
+// Child middleware inherits types from parent
+let postsActionMiddleware = use(includeParentExtra(postsMiddleware), formDataParser(schema))
 
 // Handler has access to both auth and formData
 defineRouter({
   middleware: postsActionMiddleware,
   handler: ({ extra }) => {
-    console.log(extra.user.name)      // from authMiddleware
+    console.log(extra.user.name) // from authMiddleware
     console.log(extra.formData.title) // from formDataParser
     return new Response('Success')
-  }
+  },
 })
 ```
 
@@ -101,10 +120,11 @@ import type { Middleware } from '@remix-run/fetch-router-extra'
 function createAuthMiddleware(): Middleware<{
   user: { id: string; name: string }
 }> {
-  return (context) => {
-    (context as any).extra = {
-      user: { id: '1', name: 'John' }
+  return (context, next) => {
+    ;(context as any).extra = {
+      user: { id: '1', name: 'John' },
     }
+    return next()
   }
 }
 ```
@@ -123,18 +143,22 @@ Define a route tree with type-safe middleware data.
 
 Define a single route handler with type-safe middleware data.
 
-### `use(parent, middleware)`
+### `use(...middleware)`
 
-Create middleware that inherits extra data from parent middleware.
+Combine multiple middleware into a single array with proper type inference for the combined `extra` data. Accepts any number of middleware or middleware arrays.
 
-### `withParent<T>()`
+### `includeParentExtra(parentMiddleware)`
 
-Create a parent middleware reference for type inheritance.
+Create a pass-through middleware that inherits extra data types from a parent middleware array. Useful for composing child middleware that should include the parent's extra data types.
+
+### `ExtractExtra<M>`
+
+A utility type to extract the combined `extra` type from a middleware or middleware array.
 
 ## Related Work
 
-- [@remix-run/fetch-router](https://github.com/remix-run/remix/tree/main/packages/fetch-router) - A library for working with HTTP headers
+- [@remix-run/fetch-router](../fetch-router) - Type-safe fetch-based router
 
 ## License
 
-See [LICENSE](https://github.com/lemol/fetch-router-extra/blob/main/LICENSE)
+See [LICENSE](https://github.com/remix-run/remix/blob/main/LICENSE)

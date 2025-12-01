@@ -1,2 +1,2 @@
-export { use, withParent } from "./middleware.js";
+export { use, includeParentExtra } from "./middleware.js";
 export { defineRouter } from "./define-router.js";

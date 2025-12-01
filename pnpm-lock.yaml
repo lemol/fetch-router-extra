@@ -7,11 +7,10 @@ settings:
 importers:
 
   .:
-    dependencies:
+    devDependencies:
       '@remix-run/fetch-router':
         specifier: ^0.12.0
         version: 0.12.0(@remix-run/headers@0.17.2)(@remix-run/route-pattern@0.15.3)(@remix-run/session@0.4.0)
-    devDependencies:
       '@remix-run/route-pattern':
         specifier: ^0.15.3
         version: 0.15.3

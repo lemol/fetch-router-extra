@@ -1,5 +1,3 @@
-# REMIX_SOURCE
-
 cp -rf ${REMIX_SOURCE}/src/* ./src/
 cp -rf ${REMIX_SOURCE}/{package.json,README.md} ./
 

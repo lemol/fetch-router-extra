@@ -1,73 +1,52 @@
 import * as assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { defineRouter } from './define-router.ts'
+import { defineAction, defineController } from './define-router.ts'
 import { type Middleware, use, includeParentExtra } from './middleware.ts'
 
-describe('defineRouter', () => {
-  describe('single handler', () => {
-    it('returns middleware and handler', () => {
+describe('defineAction', () => {
+  describe('single action', () => {
+    it('returns middleware and action', () => {
       let testMiddleware: Middleware<{ user: string }>[] = [
         (context) => {
           ;(context as any).extra = { user: 'test' }
         },
       ]
 
-      let result = defineRouter({
+      let result = defineAction({
         middleware: testMiddleware,
-        handler: ({ extra }) => {
+        action: ({ extra }) => {
           return new Response(`Hello ${extra.user}`)
         },
       })
 
       assert.ok(result.middleware)
-      assert.ok(result.handler)
+      assert.ok(result.action)
       assert.equal(result.middleware, testMiddleware)
     })
 
-    it('handler receives typed extra from middleware', () => {
+    it('action receives typed extra from middleware', () => {
       let testMiddleware: Middleware<{ user: { name: string } }>[] = [
         (context) => {
           ;(context as any).extra = { user: { name: 'John' } }
         },
       ]
 
-      let result = defineRouter({
+      let result = defineAction({
         middleware: testMiddleware,
-        handler: ({ extra }) => {
+        action: ({ extra }) => {
           // Type assertion to verify the type is correct
           let userName: string = extra.user.name
           return new Response(`Hello ${userName}`)
         },
       })
 
-      assert.ok(result.handler)
+      assert.ok(result.action)
     })
   })
 
-  describe('route tree', () => {
-    it('returns handlers object', () => {
-      let testMiddleware: Middleware<{ auth: boolean }>[] = [
-        (context) => {
-          ;(context as any).extra = { auth: true }
-        },
-      ]
-
-      // Test that defineRouter accepts route tree structure
-      // The actual type checking is done at compile time
-      let result = defineRouter({
-        middleware: testMiddleware,
-        handler: ({ extra }) => new Response(`Auth: ${extra.auth}`),
-      })
-
-      assert.ok(result)
-      assert.ok(result.middleware)
-      assert.ok(result.handler)
-    })
-  })
-
-  describe('single route', () => {
-    it('returns handler for specific route', () => {
+  describe('with route', () => {
+    it('returns action for specific route', () => {
       let testMiddleware: Middleware<{ userId: string }>[] = [
         (context) => {
           ;(context as any).extra = { userId: '123' }
@@ -76,15 +55,38 @@ describe('defineRouter', () => {
 
       let route = '/posts/:id'
 
-      let result = defineRouter(route, {
+      let result = defineAction(route, {
         middleware: testMiddleware,
-        handler: ({ extra }) => {
+        action: ({ extra }) => {
           return new Response(`User: ${extra.userId}`)
         },
       })
 
       assert.ok(result)
     })
+  })
+})
+
+describe('defineController', () => {
+  it('returns actions object', () => {
+    let testMiddleware: Middleware<{ auth: boolean }>[] = [
+      (context) => {
+        ;(context as any).extra = { auth: true }
+      },
+    ]
+
+    // Test that defineController accepts controller structure
+    // The actual type checking is done at compile time
+    let result = defineController({
+      middleware: testMiddleware,
+      actions: {
+        index: ({ extra }) => new Response(`Auth: ${extra.auth}`),
+      },
+    })
+
+    assert.ok(result)
+    assert.ok(result.middleware)
+    assert.ok(result.actions)
   })
 })
 
@@ -140,10 +142,10 @@ describe('use', () => {
     let combined = use(includeParentExtra(parentMw), childMw)
     let _extra = extractExtraType(combined) satisfies { auth: boolean; formData: { title: string } }
 
-    // Use in defineRouter to verify type safety
-    let result = defineRouter({
+    // Use in defineAction to verify type safety
+    let result = defineAction({
       middleware: combined,
-      handler: ({ extra }) => {
+      action: ({ extra }) => {
         // Both types should be available
         let auth: boolean = extra.auth
         let title: string = extra.formData.title
@@ -162,7 +164,7 @@ function extractExtraType<T extends Middleware<any>[]>(
 }
 
 describe('integration', () => {
-  it('works with nested routers and middleware inheritance', () => {
+  it('works with nested controllers and middleware inheritance', () => {
     // Parent middleware
     let authMiddleware: Middleware<{ user: { id: string; name: string } }>[] = [
       (context) => {
@@ -182,10 +184,10 @@ describe('integration', () => {
 
     let combinedMiddleware = use(includeParentExtra(authMiddleware), formMiddleware)
 
-    // Inner router with combined middleware
-    let innerRouter = defineRouter({
+    // Inner action with combined middleware
+    let innerAction = defineAction({
       middleware: combinedMiddleware,
-      handler: ({ extra }) => {
+      action: ({ extra }) => {
         // Both parent and child extra should be available
         let userId: string = extra.user.id
         let userName: string = extra.user.name
@@ -195,9 +197,9 @@ describe('integration', () => {
       },
     })
 
-    assert.ok(innerRouter)
-    assert.ok(innerRouter.middleware)
-    assert.ok(innerRouter.handler)
+    assert.ok(innerAction)
+    assert.ok(innerAction.middleware)
+    assert.ok(innerAction.action)
   })
 
   it('handles mixed middleware types correctly', () => {
@@ -220,9 +222,9 @@ describe('integration', () => {
       ;(context as any).extra = { ...((context as any).extra || {}), admin: true }
     }
 
-    let result = defineRouter({
+    let result = defineAction({
       middleware: [authMiddleware, servicesMiddleware, adminMiddleware],
-      handler: ({ extra }) => {
+      action: ({ extra }) => {
         // In the failing case, 'extra' might be inferred as the union of extras
         // or just one of them, rather than the intersection.
         // We want to verify that we can access properties from ALL middlewares.

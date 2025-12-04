@@ -2,13 +2,14 @@
   "name": "fetch-router-extra",
   "version": "0.1.0",
   "description": "Extra features for @remix-run/fetch-router",
-  "author": "Leza Lutonda <lemol.leza@gmail.com>",
+  "author": "Michael Jackson <mjijackson@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lemol/fetch-router-extra.git"
+    "url": "git+https://github.com/remix-run/remix.git",
+    "directory": "packages/fetch-router"
   },
-  "homepage": "https://github.com/lemol/fetch-router-extra#readme",
+  "homepage": "https://github.com/remix-run/remix/tree/main/packages/fetch-router-extra#readme",
   "files": [
     "LICENSE",
     "README.md",
@@ -32,13 +33,13 @@
     }
   },
   "devDependencies": {
-    "@remix-run/fetch-router": "^0.12.0",
+    "@remix-run/fetch-router": "^0.13.0",
     "@remix-run/route-pattern": "^0.15.3",
-    "@types/node": "^24.6.0",
+    "@types/node": "^24.10.1",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@remix-run/fetch-router": "^0.12.0"
+    "@remix-run/fetch-router": "0"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

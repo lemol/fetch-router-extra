@@ -1,14 +1,17 @@
-import type { RequestContext, Route, RequestMethod, BuildAction, Controller, Action } from '@remix-run/fetch-router';
+import type { RequestContext, Route, RequestMethod, BuildAction, Action } from '@remix-run/fetch-router';
 import type { RouteMap } from '@remix-run/fetch-router';
 import type { Params, RoutePattern } from '@remix-run/route-pattern';
 import { type ExtractExtra, type Middleware } from './middleware.ts';
 type ControllerActions<routes extends RouteMap> = {
-    [name in keyof routes]: (routes[name] extends Route<infer method extends RequestMethod | 'ANY', infer pattern extends string> ? Action<method, pattern> : routes[name] extends RouteMap ? Controller<routes[name]> : never);
+    [name in keyof routes]: (routes[name] extends Route<infer method extends RequestMethod | 'ANY', infer pattern extends string> ? Action<method, pattern> : routes[name] extends RouteMap ? {
+        middleware: Middleware[];
+        actions: ControllerActions<routes[name]>;
+    } : never);
 };
 type ControllerExtra<routes extends RouteMap, extra extends Record<string, any> = {}> = ControllerExtraWithMiddleware<routes, extra> | ControllerExtraWithoutMiddleware<routes, extra>;
 type ControllerExtraWithMiddleware<routes extends RouteMap, extra extends Record<string, any> = {}> = {
-    middleware: Middleware[];
-    actions: ControllerExtra<routes, extra>;
+    middleware: readonly Middleware<any, any, any>[];
+    actions: ControllerExtra<routes, extra> | ControllerActions<routes>;
 } & (routes extends Record<string, any> ? {
     [name in keyof routes as routes extends any ? never : name]?: never;
 } : {});
@@ -91,7 +94,7 @@ export declare function defineController<const M extends readonly Middleware[], 
     middleware: M;
     actions: ControllerExtra<routes, ExtractExtra<M>>;
 }): {
-    middleware: M;
+    middleware: Middleware[];
     actions: ControllerActions<routes>;
 };
 /**
@@ -124,7 +127,7 @@ export declare function defineController<const M extends readonly Middleware[]>(
         };
     };
 }): {
-    middleware: M;
+    middleware: Middleware[];
     actions: Record<string, (context: RequestContext) => Response | Promise<Response>>;
 };
 export {};

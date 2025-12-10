@@ -10,13 +10,13 @@ importers:
     devDependencies:
       '@remix-run/fetch-router':
         specifier: ^0.13.0
-        version: 0.13.0(@remix-run/headers@0.18.0)(@remix-run/route-pattern@0.15.3)(@remix-run/session@0.4.0)
+        version: 0.13.0(@remix-run/headers@0.18.0)(@remix-run/route-pattern@0.15.3)(@remix-run/session@0.4.1)
       '@remix-run/route-pattern':
         specifier: ^0.15.3
         version: 0.15.3
       '@types/node':
-        specifier: ^24.10.1
-        version: 24.10.1
+        specifier: ^24.10.2
+        version: 24.10.2
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -36,11 +36,11 @@ packages:
   '@remix-run/route-pattern@0.15.3':
     resolution: {integrity: sha512-7s4Oy9q6Oz9Vfwg0iZscpmYVASNG9fLqbCa+YY0+SWKksDpvCRiW46xp3S3zEvT7zEP7G55FKA+JdrqqK2AOXw==}
 
-  '@remix-run/session@0.4.0':
-    resolution: {integrity: sha512-xDOPFllrjaEvIekzRfqO8VG2DsFfVasSjB49ElH4nR31YsqEGDCwCmK4GWSv/GsS1Bo+0JRHmIBTNdvNORLp7A==}
+  '@remix-run/session@0.4.1':
+    resolution: {integrity: sha512-Bm6aKYgutb/raHZ3laloz8g/Qu7f3CeK3o4gUVDMxtEiAdWCzJamwHoTpGOc5+g1Kuy7z85v4M6nGrF06MFDSg==}
 
-  '@types/node@24.10.1':
-    resolution: {integrity: sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==}
+  '@types/node@24.10.2':
+    resolution: {integrity: sha512-WOhQTZ4G8xZ1tjJTvKOpyEVSGgOTvJAfDK3FNFgELyaTpzhdgHVHeqW8V+UJvzF5BT+/B54T/1S2K6gd9c7bbA==}
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -52,19 +52,19 @@ packages:
 
 snapshots:
 
-  '@remix-run/fetch-router@0.13.0(@remix-run/headers@0.18.0)(@remix-run/route-pattern@0.15.3)(@remix-run/session@0.4.0)':
+  '@remix-run/fetch-router@0.13.0(@remix-run/headers@0.18.0)(@remix-run/route-pattern@0.15.3)(@remix-run/session@0.4.1)':
     dependencies:
       '@remix-run/headers': 0.18.0
       '@remix-run/route-pattern': 0.15.3
-      '@remix-run/session': 0.4.0
+      '@remix-run/session': 0.4.1
 
   '@remix-run/headers@0.18.0': {}
 
   '@remix-run/route-pattern@0.15.3': {}
 
-  '@remix-run/session@0.4.0': {}
+  '@remix-run/session@0.4.1': {}
 
-  '@types/node@24.10.1':
+  '@types/node@24.10.2':
     dependencies:
       undici-types: 7.16.0
 

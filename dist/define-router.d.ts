@@ -1,7 +1,10 @@
-import type { RequestContext, Route, RequestMethod, BuildAction, Controller } from '@remix-run/fetch-router';
+import type { RequestContext, Route, RequestMethod, BuildAction, Controller, Action } from '@remix-run/fetch-router';
 import type { RouteMap } from '@remix-run/fetch-router';
 import type { Params, RoutePattern } from '@remix-run/route-pattern';
 import { type ExtractExtra, type Middleware } from './middleware.ts';
+type ControllerActions<routes extends RouteMap> = {
+    [name in keyof routes]: (routes[name] extends Route<infer method extends RequestMethod | 'ANY', infer pattern extends string> ? Action<method, pattern> : routes[name] extends RouteMap ? Controller<routes[name]> : never);
+};
 type ControllerExtra<routes extends RouteMap, extra extends Record<string, any> = {}> = ControllerExtraWithMiddleware<routes, extra> | ControllerExtraWithoutMiddleware<routes, extra>;
 type ControllerExtraWithMiddleware<routes extends RouteMap, extra extends Record<string, any> = {}> = {
     middleware: Middleware[];
@@ -13,10 +16,8 @@ type ControllerExtraWithoutMiddleware<routes extends RouteMap, extra extends Rec
     [name in keyof routes]: (routes[name] extends Route<infer method extends RequestMethod | 'ANY', infer pattern extends string> ? (((context: RequestContext<method, Params<pattern>> & {
         extra: extra;
     }) => Response | Promise<Response>) | {
-        middleware: Middleware[];
-        action: (context: RequestContext<method, Params<pattern>> & {
-            extra: extra;
-        }) => Response | Promise<Response>;
+        middleware: readonly Middleware<any, any, any>[];
+        action: (context: RequestContext<method, Params<pattern>>) => Response | Promise<Response>;
     }) : routes[name] extends RouteMap ? ControllerExtra<routes[name], extra> : never);
 } & {
     middleware?: never;
@@ -89,7 +90,10 @@ export declare function defineAction<const M extends readonly Middleware[], meth
 export declare function defineController<const M extends readonly Middleware[], routes extends RouteMap>(routes: routes, options: {
     middleware: M;
     actions: ControllerExtra<routes, ExtractExtra<M>>;
-}): Controller<routes>;
+}): {
+    middleware: M;
+    actions: ControllerActions<routes>;
+};
 /**
  * Define a controller with type-safe middleware data.
  *
@@ -112,9 +116,12 @@ export declare function defineController<const M extends readonly Middleware[], 
 export declare function defineController<const M extends readonly Middleware[]>(options: {
     middleware: M;
     actions: {
-        [key: string]: (context: RequestContext & {
+        [key: string]: ((context: RequestContext & {
             extra: ExtractExtra<NoInfer<M>>;
-        }) => Response | Promise<Response>;
+        }) => Response | Promise<Response>) | {
+            middleware: readonly Middleware[];
+            action: (context: RequestContext) => Response | Promise<Response>;
+        };
     };
 }): {
     middleware: M;

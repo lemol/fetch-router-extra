@@ -33,9 +33,9 @@
     }
   },
   "devDependencies": {
-    "@remix-run/fetch-router": "^0.13.0",
-    "@remix-run/route-pattern": "^0.15.3",
-    "@types/node": "^24.10.2",
+    "@remix-run/fetch-router": "^0.14.0",
+    "@remix-run/route-pattern": "^0.16.0",
+    "@types/node": "^24.10.4",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
